@@ -1,0 +1,57 @@
+package sqlDemo.repository;
+
+import sqlDemo.StockExchange;
+
+import java.io.Closeable;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+public class BaseTable implements Closeable {
+    protected Connection connection;
+    protected String tableName;
+
+    public BaseTable() {
+    }
+
+    public BaseTable(String tableName) throws SQLException {
+        this.tableName = tableName;
+        this.connection = StockExchange.getConnection();
+    }
+
+    @Override
+    public void close() throws IOException {
+        try {
+            if (connection != null && !connection.isClosed()) {
+                connection.close();
+            }
+        } catch (SQLException e) {
+            System.out.println("Connection closure error!");
+        }
+    }
+
+    void executeSqlStatement (String sql, String description) throws SQLException {
+        reopenConnection();
+        Statement statement = connection.createStatement();
+        statement.execute(sql);
+        statement.close();
+        if (description != null) {
+            System.out.println(description);
+        }
+    }
+
+    void executeSqlStatement(String sql) throws SQLException {
+        executeSqlStatement(sql, null);
+    };
+
+    void reopenConnection() throws SQLException {
+        if (connection == null || connection.isClosed()) {
+            connection = StockExchange.getConnection();
+        }
+    }
+
+    public String getTableName() {
+        return tableName;
+    }
+}
